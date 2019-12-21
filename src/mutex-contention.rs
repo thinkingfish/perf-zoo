@@ -1,11 +1,12 @@
 use std::env;
 use std::process;
+use std::sync::mpsc::channel;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Instant;
-use std::sync::mpsc::channel;
 
 const MICROS_PER_SEC: u64 = 1_000_000;
+const NANOS_PER_MICROS: u64 = 1_000;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -28,7 +29,7 @@ fn main() {
         }
     };
 
-    let iteration : u64 = match sum.checked_div(nthread.into()) {
+    let iteration: u64 = match sum.checked_div(nthread.into()) {
         Some(iteration) => iteration,
         None => {
             eprintln!("nthread cannot be zero");
@@ -46,7 +47,7 @@ fn main() {
     let (tx, rx) = channel();
     let now = Instant::now();
     for _ in 0..nthread {
-        let (data, tx) = (Arc::clone(&data), tx.clone());
+        let (data, tx) = (data.clone(), tx.clone());
         thread::spawn(move || {
             // The shared state can only be accessed once the lock is held.
             // Our non-atomic increment is safe because we're the only thread
@@ -67,6 +68,7 @@ fn main() {
     rx.recv().unwrap();
 
     let duration_us = now.elapsed().as_micros();
-    println!("Took {} microseconds, average throughput: {:.1} increments per second",
-             duration_us, (sum * MICROS_PER_SEC) as f64  / (duration_us as f64));
+    println!("Execution time: {} microseconds", duration_us);
+    println!("Average throughput: {:.1} ops / second", (sum * MICROS_PER_SEC) as f64 / (duration_us as f64));
+    println!("ns / op: {:.1}", (duration_us * NANOS_PER_MICROS as u128) as f64 / (sum as f64));
 }
