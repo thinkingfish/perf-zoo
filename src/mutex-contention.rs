@@ -69,6 +69,12 @@ fn main() {
 
     let duration_us = now.elapsed().as_micros();
     println!("Execution time: {} microseconds", duration_us);
-    println!("Average throughput: {:.1} ops / second", (sum * MICROS_PER_SEC) as f64 / (duration_us as f64));
-    println!("ns / op: {:.1}", (duration_us * NANOS_PER_MICROS as u128) as f64 / (sum as f64));
+    println!(
+        "Average throughput: {:.1} ops / second",
+        (sum * MICROS_PER_SEC) as f64 / (duration_us as f64)
+    );
+    println!(
+        "ns / op: {:.1}",
+        (duration_us * NANOS_PER_MICROS as u128) as f64 / (sum as f64)
+    );
 }
