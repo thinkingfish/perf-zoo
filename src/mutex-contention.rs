@@ -10,14 +10,25 @@ const NANOS_PER_SEC: f64 = 1_000_000_000.0;
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "Perf Zoo: Mutext Contention",
-    about = "Explore the scalability of mutex in a multicore environment.")]
+    about = "Explore the scalability of mutex in a multicore environment."
+)]
 struct Args {
     /// number of concurrent threads
-    #[structopt(short = "n", long = "nthread", name = "NUM_OF_THREADS", default_value = "1")]
+    #[structopt(
+        short = "n",
+        long = "nthread",
+        name = "NUM_OF_THREADS",
+        default_value = "1"
+    )]
     nthread: u32,
 
     /// total increments
-    #[structopt(short = "s", long = "sum", name = "SUM_OF_INCREMENTS", default_value = "100000000")]
+    #[structopt(
+        short = "s",
+        long = "sum",
+        name = "SUM_OF_INCREMENTS",
+        default_value = "100000000"
+    )]
     sum: u64,
 }
 
@@ -41,8 +52,8 @@ fn incr_raw(sum: u64) {
     // Describe the experiment
     println!(
         "====================================================================\n\
-          Incrementing the counter without locking, added extra bit operation \
-          and addition, so the compiler won't eliminate the loop entirely"
+         Incrementing the counter without locking, added extra bit operation \
+         and addition, so the compiler won't eliminate the loop entirely"
     );
 
     for _ in 0..sum {
@@ -69,7 +80,7 @@ fn incr_mutex(sum: u64, nthread: u32) {
     // Describe the experiment
     println!(
         "====================================================================\n\
-          Incrementing the counter using {} threads & mutex for synchronization",
+         Incrementing the counter using {} threads & mutex for synchronization",
         nthread
     );
 
@@ -111,7 +122,9 @@ fn main() {
     let args = Args::from_args();
     println!(
         "====================================================================\n\
-          SUM: {}, THREAD COUNT: {}\n", args.sum, args.nthread);
+         SUM: {}, THREAD COUNT: {}\n",
+        args.sum, args.nthread
+    );
 
     incr_raw(args.sum);
     incr_mutex(args.sum, args.nthread);
