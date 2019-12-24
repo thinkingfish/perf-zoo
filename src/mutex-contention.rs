@@ -1,34 +1,63 @@
-use std::env;
 use std::process;
 use std::sync::mpsc::channel;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Instant;
+use structopt::StructOpt;
 
-const MICROS_PER_SEC: u64 = 1_000_000;
-const NANOS_PER_MICROS: u64 = 1_000;
+const NANOS_PER_SEC: f64 = 1_000_000_000.0;
 
-fn main() {
-    let args: Vec<String> = env::args().collect();
+#[derive(Debug, StructOpt)]
+#[structopt(
+    name = "Perf Zoo: Mutext Contention",
+    about = "Explore the scalability of mutex in a multicore environment.")]
+struct Args {
+    /// number of concurrent threads
+    #[structopt(short = "n", long = "nthread", name = "NUM_OF_THREADS", default_value = "1")]
+    nthread: u32,
 
-    // decide how many threads to create/spawn
-    let nthread = match (&args[1]).parse::<u32>() {
-        Ok(nthread) => nthread,
-        Err(e) => {
-            eprintln!("argument parsing error: {:?}", e);
-            process::exit(1);
-        }
-    };
+    /// total increments
+    #[structopt(short = "s", long = "sum", name = "SUM_OF_INCREMENTS", default_value = "100000000")]
+    sum: u64,
+}
 
-    // decide how many increments to perform in total
-    let sum = match (&args[2]).parse::<u64>() {
-        Ok(sum) => sum,
-        Err(e) => {
-            eprintln!("argument parsing error: {:?}", e);
-            process::exit(2);
-        }
-    };
+fn print_result(sum: u64, duration_sec: f64) {
+    println!("Execution time: {:.6} seconds", duration_sec);
+    println!(
+        "Average throughput: {:.1} ops / second",
+        (sum as f64) / duration_sec
+    );
+    println!(
+        "ns / op: {:.1}",
+        duration_sec * NANOS_PER_SEC / (sum as f64)
+    );
+    println!();
+}
 
+fn incr_raw(sum: u64) {
+    let mut value: u64 = 0;
+    let now = Instant::now();
+
+    // Describe the experiment
+    println!(
+        "====================================================================\n\
+          Incrementing the counter without locking, added extra bit operation \
+          and addition, so the compiler won't eliminate the loop entirely"
+    );
+
+    for _ in 0..sum {
+        // use bit operation so compiler won't eliminate the loop entirely
+        // use value inside the loop so compiler won't vectorize/unroll it.
+        value += 1 + (value & 1);
+    }
+
+    assert!(value > sum);
+
+    let duration_ns = now.elapsed().as_nanos() as f64;
+    print_result(sum, duration_ns / NANOS_PER_SEC);
+}
+
+fn incr_mutex(sum: u64, nthread: u32) {
     let iteration: u64 = match sum.checked_div(nthread.into()) {
         Some(iteration) => iteration,
         None => {
@@ -36,6 +65,13 @@ fn main() {
             process::exit(1);
         }
     };
+
+    // Describe the experiment
+    println!(
+        "====================================================================\n\
+          Incrementing the counter using {} threads & mutex for synchronization",
+        nthread
+    );
 
     // Spawn n threads to increment a shared variable (non-atomically), and
     // let the main thread know once all increments are done.
@@ -67,14 +103,16 @@ fn main() {
 
     rx.recv().unwrap();
 
-    let duration_us = now.elapsed().as_micros();
-    println!("Execution time: {} microseconds", duration_us);
+    let duration_ns = now.elapsed().as_nanos() as f64;
+    print_result(sum, duration_ns / NANOS_PER_SEC);
+}
+
+fn main() {
+    let args = Args::from_args();
     println!(
-        "Average throughput: {:.1} ops / second",
-        (sum * MICROS_PER_SEC) as f64 / (duration_us as f64)
-    );
-    println!(
-        "ns / op: {:.1}",
-        (duration_us * NANOS_PER_MICROS as u128) as f64 / (sum as f64)
-    );
+        "====================================================================\n\
+          SUM: {}, THREAD COUNT: {}\n", args.sum, args.nthread);
+
+    incr_raw(args.sum);
+    incr_mutex(args.sum, args.nthread);
 }

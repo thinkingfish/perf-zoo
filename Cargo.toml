@@ -9,3 +9,4 @@ name = "mutex-contention"
 path = "src/mutex-contention.rs"
 
 [dependencies]
+structopt = "0.3"
