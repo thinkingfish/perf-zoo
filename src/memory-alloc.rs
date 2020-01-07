@@ -15,7 +15,7 @@ struct Args {
         short = "n",
         long = "nalloc",
         name = "NUM_OF_ALLOCATIONS",
-        default_value = "1000000"
+        default_value = "10000"
     )]
     nalloc: u64,
 
@@ -44,7 +44,7 @@ fn print_result(nalloc: u64, duration_sec: f64) {
 
 fn alloc_by_size(nalloc: u64, size: usize) {
     let mut v: Vec<*mut u8> = Vec::with_capacity(nalloc as usize);
-    let now = Instant::now();
+    let now;
 
     // Describe the experiment
     println!(
@@ -53,6 +53,7 @@ fn alloc_by_size(nalloc: u64, size: usize) {
     );
     unsafe {
         let layout = Layout::from_size_align_unchecked(size, size);
+        now = Instant::now();
         for _ in 0..nalloc {
             v.push(alloc(layout));
         }
@@ -63,11 +64,12 @@ fn alloc_by_size(nalloc: u64, size: usize) {
 
 fn main() {
     let args = Args::from_args();
+    let size = 2_usize.pow(args.power);
     println!(
         "====================================================================\n\
-         NALLOC: {}, SIZE: {}\n",
-        args.nalloc, 2usize.pow(args.power)
+         NALLOC: {}, SIZE: {}, total memory: {}\n",
+        args.nalloc, size, args.nalloc as usize * size
     );
 
-    alloc_by_size(args.nalloc, 2_usize.pow(args.power));
+    alloc_by_size(args.nalloc, size);
 }
