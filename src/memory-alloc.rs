@@ -69,5 +69,5 @@ fn main() {
         args.nalloc, 2usize.pow(args.power)
     );
 
-    alloc_by_size(args.nalloc, 2usize.pow(args.power));
+    alloc_by_size(args.nalloc, 2_usize.pow(args.power));
 }
