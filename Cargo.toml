@@ -8,5 +8,9 @@ edition = "2018"
 name = "mutex-contention"
 path = "src/mutex-contention.rs"
 
+[[bin]]
+name = "memory-alloc"
+path = "src/memory-alloc.rs"
+
 [dependencies]
 structopt = "0.3"
