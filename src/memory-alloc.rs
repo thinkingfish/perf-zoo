@@ -1,18 +1,18 @@
+use clap::Parser;
 use std::alloc::{alloc, Layout};
 use std::time::Instant;
-use structopt::StructOpt;
 
 const NANOS_PER_SEC: f64 = 1_000_000_000.0;
 
-#[derive(Debug, StructOpt)]
-#[structopt(
+#[derive(Debug, Parser)]
+#[clap(
     name = "Perf Zoo: Memory Allocation",
     about = "Explore the cost of memory allocation."
 )]
 struct Args {
     /// number of allocations to perform
-    #[structopt(
-        short = "n",
+    #[clap(
+        short = 'n',
         long = "nalloc",
         name = "NUM_OF_ALLOCATIONS",
         default_value = "10000"
@@ -20,8 +20,8 @@ struct Args {
     nalloc: u64,
 
     /// allocation size in bytes
-    #[structopt(
-        short = "p",
+    #[clap(
+        short = 'p',
         long = "power",
         name = "POWER_OF_2_SIZE",
         default_value = "6"
@@ -63,7 +63,7 @@ fn alloc_by_size(nalloc: u64, size: usize) {
 }
 
 fn main() {
-    let args = Args::from_args();
+    let args = Args::parse();
     let size = 2_usize.pow(args.power);
     println!(
         "====================================================================\n\

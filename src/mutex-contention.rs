@@ -1,21 +1,21 @@
+use clap::Parser;
 use std::process;
 use std::sync::mpsc::channel;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Instant;
-use structopt::StructOpt;
 
 const NANOS_PER_SEC: f64 = 1_000_000_000.0;
 
-#[derive(Debug, StructOpt)]
-#[structopt(
+#[derive(Debug, Parser)]
+#[clap(
     name = "Perf Zoo: Mutext Contention",
     about = "Explore the scalability of mutex in a multicore environment."
 )]
 struct Args {
     /// number of concurrent threads
-    #[structopt(
-        short = "n",
+    #[clap(
+        short = 'n',
         long = "nthread",
         name = "NUM_OF_THREADS",
         default_value = "1"
@@ -23,8 +23,8 @@ struct Args {
     nthread: u32,
 
     /// total increments
-    #[structopt(
-        short = "s",
+    #[clap(
+        short = 's',
         long = "sum",
         name = "SUM_OF_INCREMENTS",
         default_value = "100000000"
@@ -119,7 +119,7 @@ fn incr_mutex(sum: u64, nthread: u32) {
 }
 
 fn main() {
-    let args = Args::from_args();
+    let args = Args::parse();
     println!(
         "====================================================================\n\
          SUM: {}, THREAD COUNT: {}\n",
